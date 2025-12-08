@@ -1,23 +1,12 @@
-
 from fastapi import APIRouter
+from starlette import status
 
-
-
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-#     Base.metadata.create_all(engine)
-#     print("Все таблицы созданы")
-#     yield
+from app.schemas import ChatRequest
 
 router = APIRouter(
     prefix="/requests",
     tags=['Requests'],
 )
-
-
-
-
-
 
 # @router.get("/")
 # def get_my_requests(request: Request):

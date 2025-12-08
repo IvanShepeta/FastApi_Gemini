@@ -4,6 +4,9 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr
 
 
+class ChatRequest(BaseModel):
+    pass
+
 class UserOut(BaseModel):
     id: int
     email: EmailStr
