@@ -15,13 +15,13 @@ class User(Base):
     # relationship with ChatRequests
     chats = relationship("ChatRequest", back_populates="owner", cascade="all, delete-orphan")
 
-class ChatRequests(Base):
+class ChatRequest(Base):
     __tablename__ = "chat_requests"
 
     id = Column(Integer, primary_key=True, nullable=False)
     prompt = Column(String, nullable=False)
     response = Column(String, nullable=False)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=False, )
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('NOW()'))
 
     # relationship with User
