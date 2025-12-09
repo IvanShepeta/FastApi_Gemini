@@ -10,7 +10,7 @@ from app.schemas import ChatCreate, ChatResponse
 
 router = APIRouter(
     prefix="/chat",
-    tags=['Chat 📖 '],
+    tags=['Chat 📖'],
 )
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=ChatResponse)
