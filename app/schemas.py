@@ -1,12 +1,12 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 # CHAT SCHEMAS
 class ChatCreate(BaseModel):
-    prompt: str
+    prompt: str = Field(..., min_length=1, max_length=1000)
 
 class ChatResponse(BaseModel):
     id: int
@@ -26,7 +26,7 @@ class UserOut(BaseModel):
 
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(..., min_length=6, max_length=50)
 
 class Token(BaseModel):
     access_token: str
