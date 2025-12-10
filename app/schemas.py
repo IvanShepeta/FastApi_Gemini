@@ -34,3 +34,9 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: Optional[int] = None
+
+class ErrorDetail(BaseModel):
+    detail: str
+    path: str
+    method: str
+    status: int
