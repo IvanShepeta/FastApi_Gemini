@@ -8,7 +8,7 @@ from app.routers import post, auth
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
-models.Base.metadata.create_all(bind=engine)
+# models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 

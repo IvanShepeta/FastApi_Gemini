@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Chat - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --success: #4ade80;
+            --error: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-darker: #020617;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-darker);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .navbar-brand span {
+            background: linear-gradient(135deg, #fff 0%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: var(--glass-bg);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .btn-logout {
+            padding: 10px 20px;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background: var(--error);
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 24px;
+            min-height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            padding: 24px;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .posts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .post-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .post-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
+        }
+
+        .post-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-light);
+        }
+
+        .post-content {
+            font-size: 13px;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .chat-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 500px;
+            max-height: 600px;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+        }
+
+        .message.ai .message-avatar {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+
+        .message-content {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 14px 18px;
+            border-radius: 16px;
+            max-width: 70%;
+            border: 1px solid var(--glass-border);
+            line-height: 1.6;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        .chat-input-container {
+            padding: 20px 24px;
+            border-top: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            resize: none;
+            min-height: 52px;
+            max-height: 120px;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .btn-send {
+            padding: 14px 24px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-new-post {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-new-post:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-dark);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            padding: 32px;
+            max-width: 500px;
+            width: 100%;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--bg-dark);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 2000;
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: white;
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: relative;
+                top: 0;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .navbar {
+                padding: 12px 16px;
+            }
+
+            .container {
+                padding: 16px;
+            }
+
+            .user-info span {
+                display: none;
+            }
+
+            .chat-messages {
+                min-height: 400px;
+            }
+
+            .message-content {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="navbar-brand">
+        <span>🤖</span>
+        <span>Gemini Chat</span>
+    </div>
+    <div class="navbar-user">
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar"></div>
+            <span id="userEmail"></span>
+        </div>
+        <button class="btn-logout" onclick="handleLogout()">Вийти</button>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="sidebar">
+        <div class="sidebar-title">
+            📝 Ваші пости
+        </div>
+        <div class="posts-list" id="postsList">
+            <div class="empty-state">
+                <div class="empty-state-icon">📄</div>
+                <p>Постів поки немає</p>
+            </div>
+        </div>
+        <button class="btn-new-post" onclick="openPostModal()">+ Новий пост</button>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>💬 Чат з Gemini AI</h2>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="empty-state">
+                <div class="empty-state-icon">🤖</div>
+                <p>Почніть розмову з Gemini AI</p>
+            </div>
+        </div>
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                    <textarea
+                            class="chat-input"
+                            id="chatInput"
+                            placeholder="Напишіть повідомлення..."
+                            onkeydown="handleKeyPress(event)"
+                    ></textarea>
+                <button class="btn-send" id="sendBtn" onclick="sendMessage()">
+                    <span>Надіслати</span>
+                    <span>📤</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for new post -->
+<div class="modal" id="postModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Новий пост</h3>
+            <button class="btn-close" onclick="closePostModal()">×</button>
+        </div>
+        <form onsubmit="createPost(event)">
+            <div class="form-group">
+                <label>Заголовок</label>
+                <input type="text" id="postTitle" placeholder="Введіть заголовок..." required>
+            </div>
+            <div class="form-group">
+                <label>Контент</label>
+                <textarea id="postContent" placeholder="Введіть текст..." required></textarea>
+            </div>
+            <button type="submit" class="btn-new-post" id="createPostBtn">Створити пост</button>
+        </form>
+    </div>
+</div>
+
+<div class="toast" id="toast">
+    <span id="toastMessage"></span>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:8000';
+    let accessToken = localStorage.getItem('access_token');
+    let userEmail = localStorage.getItem('user_email');
+
+    // Check authentication
+    if (!accessToken) {
+        window.location.href = 'index.html';
+    }
+
+    // Initialize
+    document.getElementById('userEmail').textContent = userEmail;
+    document.getElementById('userAvatar').textContent = userEmail.charAt(0).toUpperCase();
+
+    // Toast notification
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+
+        toastMessage.textContent = message;
+        toast.className = `toast ${type} show`;
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    // Logout
+    function handleLogout() {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user_email');
+        window.location.href = 'index.html';
+    }
+
+    // Load posts
+    async function loadPosts() {
+        try {
+            const response = await fetch(`${API_URL}/posts/`, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (response.ok) {
+                const posts = await response.json();
+                displayPosts(posts);
+            }
+        } catch (error) {
+            console.error('Error loading posts:', error);
+        }
+    }
+
+    // Display posts
+    function displayPosts(posts) {
+        const postsList = document.getElementById('postsList');
+
+        if (posts.length === 0) {
+            postsList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📄</div>
+                    <p>Постів поки немає</p>
+                </div>
+            `;
+            return;
+        }
+
+        postsList.innerHTML = posts.map(post => `
+            <div class="post-item">
+                <div class="post-title">${post.title}</div>
+                <div class="post-content">${post.content}</div>
+            </div>
+        `).join('');
+    }
+
+    // Modal functions
+    function openPostModal() {
+        document.getElementById('postModal').classList.add('show');
+    }
+
+    function closePostModal() {
+        document.getElementById('postModal').classList.remove('show');
+        document.getElementById('postTitle').value = '';
+        document.getElementById('postContent').value = '';
+    }
+
+    // Create post
+    async function createPost(event) {
+        event.preventDefault();
+
+        const title = document.getElementById('postTitle').value;
+        const content = document.getElementById('postContent').value;
+        const btn = document.getElementById('createPostBtn');
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Створення...';
+
+        try {
+            const response = await fetch(`${API_URL}/posts/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, content, published: true })
+            });
+
+            if (response.status === 201) {
+                showToast('Пост створено успішно!', 'success');
+                closePostModal();
+                loadPosts();
+            } else {
+                throw new Error('Failed to create post');
+            }
+        } catch (error) {
+            showToast('Помилка створення поста', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Створити пост';
+        }
+    }
+
+    // Send message to Gemini
+    async function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+
+        if (!message) return;
+
+        const messagesContainer = document.getElementById('chatMessages');
+        const sendBtn = document.getElementById('sendBtn');
+
+        // Clear empty state
+        if (messagesContainer.querySelector('.empty-state')) {
+            messagesContainer.innerHTML = '';
+        }
+
+        // Add user message
+        messagesContainer.innerHTML += `
+            <div class="message user">
+                <div class="message-avatar">👤</div>
+                <div class="message-content">${message}</div>
+            </div>
+        `;
+
+        input.value = '';
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<span class="spinner"></span>';
+
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        try {
+            const response = await fetch(`${API_URL}/chat`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ prompt: message })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                // Add AI response
+                messagesContainer.innerHTML += `
+                    <div class="message ai">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">${data.response}</div>
+                    </div>
+                `;
+            } else {
+                throw new Error('API error');
+            }
+        } catch (error) {
+            messagesContainer.innerHTML += `
+                <div class="message ai">
+                    <div class="message-avatar">⚠️</div>
+                    <div class="message-content">Вибачте, сталася помилка. Перевірте підключення до API.</div>
+                </div>
+            `;
+            showToast('Помилка відправлення повідомлення', 'error');
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<span>Надіслати</span><span>📤</span>';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    }
+
+    // Handle Enter key
+    function handleKeyPress(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+
+    // Load posts on page load
+    loadPosts();
+</script>
+</body>
+</html>

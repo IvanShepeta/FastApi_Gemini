@@ -1,8 +1,7 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15
+    container_name: fastapi_postgres
     environment:
       POSTGRES_DB: ${DATABASE_NAME}
       POSTGRES_USER: ${DATABASE_USERNAME}
@@ -11,9 +10,15 @@ services:
       - "${DATABASE_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     build: .
+    container_name: fastapi_app
     ports:
       - "8000:8000"
     environment:
@@ -22,13 +27,16 @@ services:
       - ALGORITHM=${ALGORITHM}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
       - DATABASE_HOSTNAME=db
+      - DATABASE_PORT=5432
+      - DATABASE_USERNAME=${DATABASE_USERNAME}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${DATABASE_NAME}
     depends_on:
-      - db
-    command: >
-      sh -c "
-      pip install -r requirements.txt &&
-      uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-      "
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
 volumes:
   postgres_data:
