@@ -1,3 +1,4 @@
+from datetime import timedelta, datetime, timezone
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -124,29 +125,34 @@ def authorized_client(client, token):
 @pytest.fixture
 def test_chats(test_user, test_user2, session):
     """Create test chat messages"""
+
+    base_time = datetime.now(timezone.utc)
     chats_data = [
         {
             "prompt": "Hello, who are you?",
             "response": "I am Gemini AI assistant",
-            "user_id": test_user.id
+            "user_id": test_user.id,
+            "created_at": base_time - timedelta(minutes=2)
         },
         {
             "prompt": "What is Python?",
             "response": "Python is a programming language",
-            "user_id": test_user.id
+            "user_id": test_user.id,
+            "created_at": base_time - timedelta(minutes=1)
         },
         {
             "prompt": "Tell me a joke",
             "response": "Why did the programmer quit? Because they didn't get arrays!",
-            "user_id": test_user2.id
+            "user_id": test_user2.id,
+            "created_at": base_time
         }
     ]
 
-    def create_chat(chat):
-        return models.ChatRequest(**chat)
-
-    chats = list(map(create_chat, chats_data))
+    chats = [models.ChatRequest(**chat_data) for chat_data in chats_data]
     session.add_all(chats)
     session.commit()
 
-    return session.query(models.ChatRequest).all()
+    for chat in chats:
+        session.refresh(chat)
+
+    return chats
